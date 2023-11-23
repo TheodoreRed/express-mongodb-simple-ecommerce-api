@@ -5,6 +5,7 @@ import express from "express";
 import cors from "cors";
 import productsRouter from "./routes/productRouter";
 import usersRouter from "./routes/usersRouter";
+import cartItemsRouter from "./routes/cartItemRouter";
 
 // creates an instance of an Express server
 const app = express();
@@ -17,7 +18,7 @@ app.use(express.json());
 
 app.use("/products", productsRouter);
 app.use("/users", usersRouter);
-
+app.use("/users", cartItemsRouter);
 // define the port
 const port = 3000;
 

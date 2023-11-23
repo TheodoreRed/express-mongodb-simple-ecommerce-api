@@ -7,11 +7,14 @@ const productsRouter = express.Router();
 
 export const errorResponse = (error: any, res: any): void => {
   console.log("FAIL", error);
-  res.status(500).json({ message: "Internal Server Error" });
+  res.status(500).json({ message: `Internal Server Error ${error}` });
 };
 //----------------------------------------------------------------------------
 //------------------------------------------------------------------
 // build endpoints
+
+// Gets all the products
+// Then filters with max-price, includes(searchTerm), limit
 productsRouter.get("/", async (req, res) => {
   const maxPrice = +(req.query["max-price"] as string);
   const { includes } = req.query;
@@ -45,6 +48,7 @@ productsRouter.get("/", async (req, res) => {
   }
 });
 
+// GET product by its ObjectId
 productsRouter.get("/:id", async (req, res) => {
   const idImLookingFor: string = req.params.id;
 
@@ -65,6 +69,7 @@ productsRouter.get("/:id", async (req, res) => {
   }
 });
 
+// POST a new product in the body
 productsRouter.post("/", async (req, res) => {
   const newObj: Product = req.body;
   try {
@@ -76,6 +81,7 @@ productsRouter.post("/", async (req, res) => {
   }
 });
 
+// PUT to replace the product
 productsRouter.put("/:id", async (req, res) => {
   // which product to replace
   const idToReplace: string = req.params.id;
@@ -122,6 +128,10 @@ productsRouter.patch("/:id/sale", async (req, res) => {
   const idToUpdate: string = req.params.id;
   // what discount to do
   const discount: number = req.body.discount;
+
+  if (isNaN(discount) || discount >= 100 || discount < 0) {
+    return res.status(400).json({ message: "Invalid discount value" });
+  }
   try {
     const client = await getClient();
     const result = await client
@@ -129,7 +139,7 @@ productsRouter.patch("/:id/sale", async (req, res) => {
       .collection<Product>("products")
       .updateOne(
         { _id: new ObjectId(idToUpdate) },
-        { $mul: { price: 1 - discount } }
+        { $mul: { price: (100 - discount) / 100 } }
       );
 
     if (result.matchedCount) {
